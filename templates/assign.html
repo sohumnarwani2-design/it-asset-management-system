@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Assign Device</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 500px; margin: 40px auto; padding: 0 20px; }
+        h2 { border-bottom: 2px solid #333; padding-bottom: 8px; margin-bottom: 16px; }
+        .device-info { background: #f5f5f5; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
+        .device-info p { margin: 5px 0; font-size: 0.95em; }
+        label { display: block; margin-top: 14px; font-weight: bold; font-size: 0.9em; }
+        input, textarea {
+            width: 100%; padding: 8px; margin-top: 4px;
+            box-sizing: border-box; border: 1px solid #ccc;
+            border-radius: 4px; font-size: 0.95em;
+        }
+        textarea { resize: vertical; height: 80px; }
+        .error { color: red; background: #fee; padding: 8px; border-radius: 4px; margin-bottom: 12px; }
+        button { margin-top: 18px; padding: 10px 24px; background: #2c7be5; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        a { display: inline-block; margin-top: 12px; color: #555; text-decoration: none; }
+    </style>
+</head>
+<body>
+<h2>Assign Device</h2>
+<div class="device-info">
+    <p><strong>Brand:</strong> {{ device.name }}</p>
+    <p><strong>Tag No:</strong> {{ device.tag_no or "—" }}</p>
+    <p><strong>Config:</strong> {{ device.config or "—" }}</p>
+    <p><strong>Type:</strong> {{ device.type }}</p>
+    <p><strong>Serial:</strong> {{ device.serial }}</p>
+</div>
+{% if error %}<div class="error">{{ error }}</div>{% endif %}
+<form method="POST">
+    <label>Client Name</label>
+    <input type="text" name="client" placeholder="e.g. Acme Corp" required>
+    <label>Start Date</label>
+    <input type="date" name="start" required>
+    <label>Due Date</label>
+    <input type="date" name="due" required>
+    <label>Notes <span style="font-weight:normal;color:#888">(optional)</span></label>
+    <textarea name="notes" placeholder="e.g. Charger included, handle with care..."></textarea>
+    <button type="submit">Assign Device</button>
+</form>
+<a href="/">← Back</a>
+</body>
+</html>

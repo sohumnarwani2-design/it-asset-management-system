@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Maintenance</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 620px; margin: 40px auto; padding: 0 20px; }
+        h2 { border-bottom: 2px solid #333; padding-bottom: 8px; margin-bottom: 16px; }
+        .device-info { background: #f5f5f5; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
+        .device-info p { margin: 5px 0; font-size: 0.95em; }
+        label { display: block; margin-top: 14px; font-weight: bold; font-size: 0.9em; }
+        input, textarea { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95em; }
+        textarea { resize: vertical; height: 80px; }
+        button { margin-top: 18px; padding: 10px 24px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+        th { background: #1a1a2e; color: white; padding: 10px 12px; text-align: left; font-size: 0.85em; }
+        td { padding: 10px 12px; border-bottom: 1px solid #eee; font-size: 0.9em; }
+        .badge-resolved   { background: #d4edda; color: #155724; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; }
+        .badge-unresolved { background: #fde8e8; color: #a00;    padding: 2px 8px; border-radius: 10px; font-size: 0.8em; }
+        .btn-resolve { background: #27ae60; color: white; padding: 4px 10px; border-radius: 4px; text-decoration: none; font-size: 0.8em; }
+        a { display: inline-block; margin-top: 16px; color: #555; text-decoration: none; }
+    </style>
+</head>
+<body>
+<h2>🔧 Maintenance</h2>
+<div class="device-info">
+    <p><strong>Brand:</strong> {{ device.name }}</p>
+    <p><strong>Tag No:</strong> {{ device.tag_no or "—" }}</p>
+    <p><strong>Config:</strong> {{ device.config or "—" }}</p>
+    <p><strong>Serial:</strong> {{ device.serial }}</p>
+    <p><strong>Status:</strong> {{ device.status }}</p>
+</div>
+
+{% if device.status != "Maintenance" %}
+<form method="POST">
+    <label>Issue Description</label>
+    <textarea name="issue" placeholder="e.g. Screen cracked, keyboard not working..." required></textarea>
+    <label>Repair Cost <span style="font-weight:normal;color:#888">(optional)</span></label>
+    <input type="text" name="cost" placeholder="e.g. ₹1500">
+    <button type="submit">🔧 Send to Maintenance</button>
+</form>
+{% else %}
+    <p style="color:#e74c3c;font-weight:bold;margin-top:12px;">⚠️ This device is currently under maintenance.</p>
+{% endif %}
+
+{% if logs %}
+<h3 style="margin-top:28px;">Maintenance History</h3>
+<table>
+    <thead>
+        <tr><th>Issue</th><th>Reported</th><th>Cost</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+        {% for log in logs %}
+        <tr>
+            <td>{{ log.issue }}</td>
+            <td>{{ log.reported_date }}</td>
+            <td>{{ log.cost or "—" }}</td>
+            <td>
+                {% if log.resolved %}
+                    <span class="badge-resolved">✅ Resolved {{ log.resolved_date }}</span>
+                {% else %}
+                    <span class="badge-unresolved">🔧 Open</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if not log.resolved %}
+                    <a class="btn-resolve" href="/maintenance-resolve/{{ log.id }}">Mark Resolved</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+    <p style="color:#aaa;margin-top:20px;">No maintenance history yet.</p>
+{% endif %}
+
+<a href="/">← Back</a>
+</body>
+</html>

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IT Rental Inventory</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #f4f6f9; color: #333; }
+
+        header {
+            background: #1a1a2e;
+            color: white;
+            padding: 16px 24px;
+            font-size: 1.3em;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .container { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
+
+        .stats {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            flex: 1;
+            min-width: 110px;
+            background: white;
+            border-radius: 8px;
+            padding: 14px;
+            text-align: center;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        .stat-card .number { font-size: 1.9em; font-weight: bold; }
+        .stat-card .label  { font-size: 0.8em; color: #777; margin-top: 4px; }
+        .stat-card.total .number       { color: #1a1a2e; }
+        .stat-card.available .number   { color: #27ae60; }
+        .stat-card.rented .number      { color: #e67e22; }
+        .stat-card.overdue .number     { color: #e74c3c; }
+        .stat-card.idle .number        { color: #8e44ad; }
+        .stat-card.maintenance .number { color: #c0392b; }
+
+        .filter-bar {
+            background: white;
+            padding: 14px;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            margin-bottom: 16px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-bar input, .filter-bar select {
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9em;
+            flex: 1;
+            min-width: 130px;
+        }
+        .filter-bar button {
+            padding: 8px 18px;
+            background: #1a1a2e;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .filter-bar a { padding: 8px 12px; color: #777; font-size: 0.85em; text-decoration: none; }
+
+        .add-form {
+            background: white;
+            padding: 14px;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .add-form input {
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9em;
+            flex: 1;
+            min-width: 130px;
+        }
+        .add-form button {
+            padding: 8px 18px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        th {
+            background: #1a1a2e;
+            color: white;
+            padding: 11px 12px;
+            text-align: left;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.88em;
+            vertical-align: middle;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fafafa; }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 9px;
+            border-radius: 12px;
+            font-size: 0.78em;
+            font-weight: bold;
+        }
+        .badge-available    { background: #d4edda; color: #155724; }
+        .badge-rented       { background: #fff3cd; color: #856404; }
+        .badge-maintenance  { background: #fde8e8; color: #a00; }
+
+        .badge-idle {
+            background: #f3e5f5;
+            color: #6a1b9a;
+            padding: 2px 7px;
+            border-radius: 10px;
+            font-size: 0.75em;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .due-green  { color: #27ae60; font-weight: bold; }
+        .due-yellow { color: #f39c12; font-weight: bold; }
+        .due-orange { color: #e67e22; font-weight: bold; }
+        .due-red    { color: #e74c3c; font-weight: bold; }
+
+        .notes-cell {
+            max-width: 130px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #666;
+            font-style: italic;
+            font-size: 0.85em;
+        }
+
+        .actions a {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.78em;
+            text-decoration: none;
+            margin-right: 3px;
+            font-weight: bold;
+        }
+        .btn-assign      { background: #2c7be5; color: white; }
+        .btn-return      { background: #27ae60; color: white; }
+        .btn-maintenance { background: #e74c3c; color: white; }
+        .btn-edit        { background: #e67e22; color: white; }
+        .btn-history     { background: #6c757d; color: white; }
+        .btn-delete      { background: #c0392b; color: white; }
+
+        .empty { text-align: center; padding: 40px; color: #aaa; font-size: 1.1em; }
+
+        code { background: #f0f0f0; padding: 2px 5px; border-radius: 3px; font-size: 0.85em; }
+    </style>
+</head>
+<body>
+
+<header>📦 IT Rental Inventory</header>
+
+<div class="container">
+
+    <!-- Stats -->
+    <div class="stats">
+        <div class="stat-card total">
+            <div class="number">{{ stats.total }}</div>
+            <div class="label">Total</div>
+        </div>
+        <div class="stat-card available">
+            <div class="number">{{ stats.available }}</div>
+            <div class="label">Available</div>
+        </div>
+        <div class="stat-card rented">
+            <div class="number">{{ stats.rented }}</div>
+            <div class="label">Rented</div>
+        </div>
+        <div class="stat-card overdue">
+            <div class="number">{{ stats.overdue }}</div>
+            <div class="label">Overdue</div>
+        </div>
+        <div class="stat-card idle">
+            <div class="number">{{ stats.idle }}</div>
+            <div class="label">Idle 40+ days</div>
+        </div>
+        <div class="stat-card maintenance">
+            <div class="number">{{ stats.maintenance }}</div>
+            <div class="label">Maintenance</div>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <form class="filter-bar" method="GET">
+        <input type="text" name="search" placeholder="🔍 Search name, tag, config, serial..." value="{{ search }}">
+        <select name="status">
+            <option value="">All Status</option>
+            <option value="Available"   {% if status == "Available"   %}selected{% endif %}>Available</option>
+            <option value="Rented"      {% if status == "Rented"      %}selected{% endif %}>Rented</option>
+            <option value="Maintenance" {% if status == "Maintenance" %}selected{% endif %}>Maintenance</option>
+        </select>
+        <input type="text" name="client" placeholder="👤 Client name" value="{{ client }}">
+        <button type="submit">Apply</button>
+        <a href="/">Clear</a>
+    </form>
+
+    <!-- Add Device -->
+    <form class="add-form" method="POST" action="/add-device">
+        <input type="text" name="name"   placeholder="Brand (e.g. Dell Latitude)" required>
+        <input type="text" name="tag_no" placeholder="Tag No (e.g. HC-02)">
+        <input type="text" name="type"   placeholder="Type (Laptop, Router...)" required>
+        <input type="text" name="config" placeholder="Config (i5, 8GB, 256SSD)">
+        <input type="text" name="serial" placeholder="Serial number" required>
+        <button type="submit">+ Add Device</button>
+    </form>
+
+    <!-- Table -->
+    {% if devices %}
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Brand</th>
+                <th>Tag</th>
+                <th>Type</th>
+                <th>Config</th>
+                <th>Serial</th>
+                <th>Status</th>
+                <th>Client</th>
+                <th>Due Date</th>
+                <th>Notes</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in devices %}
+            <tr>
+                <td>{{ d.id }}</td>
+                <td>
+                    <strong>{{ d.name }}</strong>
+                    {% if d.is_idle %}
+                        <span class="badge-idle">💤 {{ d.idle_days }}d idle</span>
+                    {% endif %}
+                </td>
+                <td>{{ d.tag_no or "—" }}</td>
+                <td>{{ d.type }}</td>
+                <td>{{ d.config or "—" }}</td>
+                <td><code>{{ d.serial }}</code></td>
+                <td>
+                    {% if d.status == "Available" %}
+                        <span class="badge badge-available">Available</span>
+                    {% elif d.status == "Maintenance" %}
+                        <span class="badge badge-maintenance">🔧 Maintenance</span>
+                    {% else %}
+                        <span class="badge badge-rented">Rented</span>
+                    {% endif %}
+                </td>
+                <td>{{ d.client_name or "—" }}</td>
+                <td>
+                    {% if d.due_date %}
+                        <span class="due-{{ d.color }}">
+                            {{ d.due_date }}
+                            {% if d.days_left is not none %}
+                                {% if d.days_left < 0 %}
+                                    ({{ d.days_left|abs }}d overdue)
+                                {% elif d.days_left == 0 %}
+                                    (Today)
+                                {% else %}
+                                    ({{ d.days_left }}d left)
+                                {% endif %}
+                            {% endif %}
+                        </span>
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td class="notes-cell" title="{{ d.notes or '' }}">{{ d.notes or "—" }}</td>
+                <td class="actions">
+                    {% if d.status == "Available" %}
+                        <a class="btn-assign" href="/assign/{{ d.id }}">Assign</a>
+                    {% elif d.status == "Rented" %}
+                        <a class="btn-return" href="/return/{{ d.id }}">Return</a>
+                    {% endif %}
+                    <a class="btn-maintenance" href="/maintenance/{{ d.id }}">🔧</a>
+                    <a class="btn-edit"    href="/edit/{{ d.id }}">Edit</a>
+                    <a class="btn-history" href="/history/{{ d.id }}">History</a>
+                    <a class="btn-delete"  href="/delete/{{ d.id }}"
+                       onclick="return confirm('Delete this device and all its history?')">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <div class="empty">No devices found. Add one above or clear your filters.</div>
+    {% endif %}
+
+</div>
+</body>
+</html>
